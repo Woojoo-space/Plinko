@@ -1,31 +1,348 @@
-.App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-.App-header {
-  background-color: #282c34;
+.plinko-page {
   min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(39, 213, 188, 0.28), transparent 32rem),
+    linear-gradient(135deg, #0b1424 0%, #142337 48%, #10151d 100%);
+  color: #f7fbff;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  padding: 32px;
 }
 
-.App-link {
-  color: #61dafb;
+.game-shell {
+  width: min(1120px, 100%);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 20px;
+  align-items: stretch;
 }
 
-.heart {
-  color: #ff0000;
+.game-panel,
+.history-panel {
+  background: rgba(8, 16, 30, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(16px);
 }
 
-.small {
-  font-size: 0.75rem;
+.game-panel {
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.game-intro {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.eyebrow,
+.label {
+  color: #8be7d3;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(2.2rem, 5vw, 4.5rem);
+  line-height: 0.92;
+}
+
+.game-intro p:last-child {
+  color: #bbcad8;
+  font-size: 1rem;
+  max-width: 620px;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: 1fr minmax(130px, 160px) auto auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 14px;
+}
+
+.controls > div,
+.bet-control {
+  min-height: 70px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 8px;
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  text-align: left;
+}
+
+.controls strong {
+  font-size: 1.45rem;
+}
+
+.bet-control input {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  color: #ffffff;
+  font: inherit;
+  font-size: 1.35rem;
+  font-weight: 800;
+  outline: none;
+}
+
+button {
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+  min-height: 70px;
+  padding: 0 20px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.7);
+  opacity: 0.55;
+}
+
+.drop-button {
+  background: #ffd15c;
+  color: #1f1600;
+  box-shadow: 0 12px 22px rgba(255, 209, 92, 0.22);
+}
+
+.reset-button {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f7fbff;
+}
+
+.status {
+  min-height: 24px;
+  color: #d7e2ed;
+  font-weight: 700;
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+.plinko-board {
+  position: relative;
+  min-height: 600px;
+  overflow: hidden;
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    #132338;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+}
+
+.drop-zone {
+  position: absolute;
+  left: 50%;
+  top: 18px;
+  width: 74px;
+  height: 22px;
+  transform: translateX(-50%);
+  border: 2px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+}
+
+.peg {
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: #e9f7ff;
+  box-shadow: 0 0 18px rgba(139, 231, 211, 0.55);
+}
+
+.ball {
+  --ball-x: 50%;
+  --ball-drift: 1;
+  --ball-spin: 90deg;
+  position: absolute;
+  left: 50%;
+  top: 6%;
+  z-index: 3;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 28%, #fff7bb 0 16%, #ffd15c 17% 52%, #f16f42 100%);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+  animation: ball-fall 3.2s cubic-bezier(0.18, 0.74, 0.22, 1) forwards;
+}
+
+.slots {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 4px;
+  padding: 8px;
+}
+
+.slot {
+  min-height: 64px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #2cc7ad, #187966);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #061816;
+  font-size: 0.95rem;
+  font-weight: 950;
+}
+
+.slot:nth-child(1),
+.slot:nth-child(10) {
+  background: linear-gradient(180deg, #ffbd59, #f15b45);
+}
+
+.slot:nth-child(2),
+.slot:nth-child(9) {
+  background: linear-gradient(180deg, #ffe07d, #db9b28);
+}
+
+.slot:nth-child(5),
+.slot:nth-child(6) {
+  background: linear-gradient(180deg, #78a7c5, #3f647e);
+  color: #f7fbff;
+}
+
+.history-panel {
+  border-radius: 8px;
+  padding: 20px;
+  text-align: left;
+}
+
+.history-panel h2 {
+  font-size: 1.2rem;
+  margin-bottom: 16px;
+}
+
+.empty-history {
+  color: #93a7b8;
+}
+
+.history-panel ul {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.history-panel li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding-bottom: 10px;
+}
+
+.win {
+  color: #8be7d3;
+}
+
+.loss {
+  color: #ff9c87;
+}
+
+@keyframes ball-fall {
+  0% {
+    left: 50%;
+    top: 6%;
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+
+  18% {
+    left: calc(50% + (var(--ball-drift) * 5%));
+    top: 22%;
+  }
+
+  38% {
+    left: calc(var(--ball-x) - (var(--ball-drift) * 8%));
+    top: 42%;
+  }
+
+  62% {
+    left: calc(var(--ball-x) + (var(--ball-drift) * 5%));
+    top: 62%;
+  }
+
+  82% {
+    left: calc(var(--ball-x) - (var(--ball-drift) * 2%));
+    top: 76%;
+  }
+
+  100% {
+    left: var(--ball-x);
+    top: calc(100% - 48px);
+    transform: translate(-50%, -50%) rotate(var(--ball-spin));
+  }
+}
+
+@media (max-width: 900px) {
+  .plinko-page {
+    align-items: flex-start;
+    padding: 18px;
+  }
+
+  .game-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .controls {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .plinko-board {
+    min-height: 560px;
+  }
+}
+
+@media (max-width: 560px) {
+  .game-panel,
+  .history-panel {
+    padding: 16px;
+  }
+
+  .controls {
+    grid-template-columns: 1fr;
+  }
+
+  button,
+  .controls > div,
+  .bet-control {
+    min-height: 58px;
+  }
+
+  .plinko-board {
+    min-height: 500px;
+  }
+
+  .peg {
+    width: 10px;
+    height: 10px;
+  }
+
+  .slot {
+    min-height: 54px;
+    font-size: 0.75rem;
+  }
 }
