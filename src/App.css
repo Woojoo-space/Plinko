@@ -140,48 +140,15 @@ button:disabled {
   min-height: 600px;
   overflow: hidden;
   border-radius: 8px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
-    #132338;
+  background: #132338;
   border: 1px solid rgba(255, 255, 255, 0.13);
 }
 
-.drop-zone {
+.plinko-board canvas {
   position: absolute;
-  left: 50%;
-  top: 18px;
-  width: 74px;
-  height: 22px;
-  transform: translateX(-50%);
-  border: 2px solid rgba(255, 255, 255, 0.28);
-  border-radius: 999px;
-}
-
-.peg {
-  position: absolute;
-  width: 13px;
-  height: 13px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: #e9f7ff;
-  box-shadow: 0 0 18px rgba(139, 231, 211, 0.55);
-}
-
-.ball {
-  --ball-x: 50%;
-  --ball-drift: 1;
-  --ball-spin: 90deg;
-  position: absolute;
-  left: 50%;
-  top: 6%;
-  z-index: 3;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 30% 28%, #fff7bb 0 16%, #ffd15c 17% 52%, #f16f42 100%);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
-  animation: ball-fall 3.2s cubic-bezier(0.18, 0.74, 0.22, 1) forwards;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .slots {
@@ -189,14 +156,16 @@ button:disabled {
   bottom: 0;
   left: 0;
   right: 0;
+  z-index: 2;
   display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
-  gap: 4px;
-  padding: 8px;
+  grid-template-columns: repeat(11, minmax(0, 1fr));
+  gap: 3px;
+  padding: 0 8px 8px;
+  pointer-events: none;
 }
 
 .slot {
-  min-height: 64px;
+  min-height: 54px;
   border-radius: 8px;
   background: linear-gradient(180deg, #2cc7ad, #187966);
   border: 1px solid rgba(255, 255, 255, 0.22);
@@ -209,16 +178,15 @@ button:disabled {
 }
 
 .slot:nth-child(1),
-.slot:nth-child(10) {
+.slot:nth-child(11) {
   background: linear-gradient(180deg, #ffbd59, #f15b45);
 }
 
 .slot:nth-child(2),
-.slot:nth-child(9) {
+.slot:nth-child(10) {
   background: linear-gradient(180deg, #ffe07d, #db9b28);
 }
 
-.slot:nth-child(5),
 .slot:nth-child(6) {
   background: linear-gradient(180deg, #78a7c5, #3f647e);
   color: #f7fbff;
@@ -261,40 +229,6 @@ button:disabled {
 
 .loss {
   color: #ff9c87;
-}
-
-@keyframes ball-fall {
-  0% {
-    left: 50%;
-    top: 6%;
-    transform: translate(-50%, -50%) rotate(0deg);
-  }
-
-  18% {
-    left: calc(50% + (var(--ball-drift) * 5%));
-    top: 22%;
-  }
-
-  38% {
-    left: calc(var(--ball-x) - (var(--ball-drift) * 8%));
-    top: 42%;
-  }
-
-  62% {
-    left: calc(var(--ball-x) + (var(--ball-drift) * 5%));
-    top: 62%;
-  }
-
-  82% {
-    left: calc(var(--ball-x) - (var(--ball-drift) * 2%));
-    top: 76%;
-  }
-
-  100% {
-    left: var(--ball-x);
-    top: calc(100% - 48px);
-    transform: translate(-50%, -50%) rotate(var(--ball-spin));
-  }
 }
 
 @media (max-width: 900px) {
@@ -342,7 +276,7 @@ button:disabled {
   }
 
   .slot {
-    min-height: 54px;
-    font-size: 0.75rem;
+    min-height: 46px;
+    font-size: 0.68rem;
   }
 }

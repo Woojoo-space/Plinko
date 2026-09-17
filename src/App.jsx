@@ -1,11 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import './App.css';
 
-const ROWS = 9;
-const SLOT_COUNT = 10;
+const ROWS = 10;
+const SLOT_COUNT = ROWS + 1;
 const STARTING_BALANCE = 1000;
 const INITIAL_BET = 25;
-const MULTIPLIERS = [5, 2.5, 1.4, 0.8, 0.4, 0.4, 0.8, 1.4, 2.5, 5];
+const MULTIPLIERS = [8, 4, 2, 1.3, 0.7, 0.4, 0.7, 1.3, 2, 4, 8];
+const BALL_RADIUS = 10;
+const PEG_RADIUS = 7;
+const GRAVITY = 0.34;
+const AIR_RESISTANCE = 0.997;
+const RESTITUTION = 0.72;
+const WALL_RESTITUTION = 0.62;
 
 function formatMoney(amount) {
   return `$${amount.toLocaleString('en-US', {
@@ -18,74 +24,199 @@ function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
-function createBall(id) {
-  const slot = Math.floor(Math.random() * SLOT_COUNT);
-  const jitter = Math.random() * 10 - 5;
+function getBoardGeometry(width, height) {
+  const sidePadding = 8;
+  const top = 76;
+  const slotTop = height - 92;
+  const rowGap = (slotTop - top - 28) / (ROWS - 1);
+  const spacing = Math.min((width - sidePadding * 2) / ROWS, rowGap * 1.12);
+  const boardWidth = spacing * ROWS;
+  const left = width / 2 - boardWidth / 2;
+  const slotWidth = boardWidth / SLOT_COUNT;
+
+  const pegs = Array.from({ length: ROWS }, (_, row) => {
+    const count = row + 1;
+    const rowWidth = row * spacing;
+    const startX = width / 2 - rowWidth / 2;
+
+    return Array.from({ length: count }, (_, index) => ({
+      x: startX + index * spacing,
+      y: top + row * rowGap,
+    }));
+  }).flat();
 
   return {
-    id,
-    slot,
-    x: ((slot + 0.5) / SLOT_COUNT) * 100 + jitter,
-    drift: Math.random() > 0.5 ? 1 : -1,
-    spin: Math.random() * 300 - 150,
+    boardLeft: left,
+    boardRight: left + boardWidth,
+    boardWidth,
+    width,
+    height,
+    pegs,
+    slotTop,
+    slotWidth,
   };
 }
 
+function drawBoard(context, geometry, balls) {
+  const { boardLeft, boardRight, boardWidth, height, pegs, slotTop, slotWidth, width } = geometry;
+
+  context.clearRect(0, 0, width, height);
+
+  const gradient = context.createLinearGradient(0, 0, 0, height);
+  gradient.addColorStop(0, '#19314c');
+  gradient.addColorStop(1, '#0e1b2b');
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, context.canvas.width, context.canvas.height);
+
+  context.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+  context.lineWidth = 3;
+  context.beginPath();
+  context.moveTo(boardLeft, slotTop);
+  context.lineTo(width / 2, 42);
+  context.lineTo(boardRight, slotTop);
+  context.stroke();
+
+  context.fillStyle = 'rgba(255, 255, 255, 0.1)';
+  context.strokeStyle = 'rgba(255, 255, 255, 0.24)';
+  context.lineWidth = 2;
+  context.beginPath();
+  context.roundRect(width / 2 - 42, 22, 84, 26, 13);
+  context.fill();
+  context.stroke();
+
+  pegs.forEach((peg) => {
+    const glow = context.createRadialGradient(peg.x, peg.y, 2, peg.x, peg.y, 22);
+    glow.addColorStop(0, 'rgba(232, 250, 255, 0.95)');
+    glow.addColorStop(0.35, 'rgba(139, 231, 211, 0.58)');
+    glow.addColorStop(1, 'rgba(139, 231, 211, 0)');
+    context.fillStyle = glow;
+    context.beginPath();
+    context.arc(peg.x, peg.y, 22, 0, Math.PI * 2);
+    context.fill();
+
+    context.fillStyle = '#eaf8ff';
+    context.beginPath();
+    context.arc(peg.x, peg.y, PEG_RADIUS, 0, Math.PI * 2);
+    context.fill();
+  });
+
+  context.strokeStyle = 'rgba(255, 255, 255, 0.26)';
+  context.lineWidth = 2;
+  for (let divider = 0; divider <= SLOT_COUNT; divider += 1) {
+    const x = boardLeft + divider * slotWidth;
+    context.beginPath();
+    context.moveTo(x, slotTop);
+    context.lineTo(x, height - 8);
+    context.stroke();
+  }
+
+  balls.forEach((ball) => {
+    const ballGradient = context.createRadialGradient(
+      ball.x - 4,
+      ball.y - 5,
+      2,
+      ball.x,
+      ball.y,
+      BALL_RADIUS,
+    );
+    ballGradient.addColorStop(0, '#fff7bb');
+    ballGradient.addColorStop(0.42, '#ffd15c');
+    ballGradient.addColorStop(1, '#f16f42');
+    context.fillStyle = ballGradient;
+    context.beginPath();
+    context.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
+    context.fill();
+  });
+
+  context.fillStyle = 'rgba(255, 255, 255, 0.18)';
+  context.fillRect(boardLeft, slotTop, boardWidth, 2);
+}
+
+function resolvePegCollision(ball, peg) {
+  const dx = ball.x - peg.x;
+  const dy = ball.y - peg.y;
+  const minDistance = BALL_RADIUS + PEG_RADIUS;
+  const distance = Math.hypot(dx, dy);
+
+  if (distance === 0 || distance >= minDistance) {
+    return;
+  }
+
+  const normalX = dx / distance;
+  const normalY = dy / distance;
+  const overlap = minDistance - distance;
+  const speedAlongNormal = ball.vx * normalX + ball.vy * normalY;
+
+  ball.x += normalX * overlap;
+  ball.y += normalY * overlap;
+
+  if (speedAlongNormal < 0) {
+    ball.vx -= (1 + RESTITUTION) * speedAlongNormal * normalX;
+    ball.vy -= (1 + RESTITUTION) * speedAlongNormal * normalY;
+  }
+
+  ball.vx += normalX * 0.16;
+}
+
 function App() {
+  const canvasRef = useRef(null);
+  const animationRef = useRef(null);
+  const ballsRef = useRef([]);
+  const geometryRef = useRef(null);
+  const nextBallId = useRef(1);
+  const activeBetsRef = useRef(new Map());
+
   const [balance, setBalance] = useState(STARTING_BALANCE);
   const [bet, setBet] = useState(INITIAL_BET);
-  const [balls, setBalls] = useState([]);
+  const [activeBalls, setActiveBalls] = useState(0);
   const [lastDrop, setLastDrop] = useState('Drop a ball to start playing.');
   const [history, setHistory] = useState([]);
-  const nextBallId = useRef(1);
-  const payoutTimers = useRef([]);
-
-  const pegRows = useMemo(
-    () =>
-      Array.from({ length: ROWS }, (_, row) =>
-        Array.from({ length: row + 3 }, (__, peg) => ({
-          id: `${row}-${peg}`,
-          left: ((peg + 1) / (row + 4)) * 100,
-          top: 11 + row * 8.5,
-        })),
-      ),
-    [],
-  );
 
   const canDrop = balance >= bet;
 
-  useEffect(() => {
-    return () => {
-      payoutTimers.current.forEach((timerId) => window.clearTimeout(timerId));
-    };
-  }, []);
+  const slotLabels = useMemo(
+    () =>
+      MULTIPLIERS.map((multiplier, index) => ({
+        id: `${multiplier}-${index}`,
+        multiplier,
+      })),
+    [],
+  );
 
-  function dropBall() {
-    if (!canDrop) {
-      setLastDrop('Not enough fake money for that bet.');
-      return;
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+    if (!context) {
+      return undefined;
     }
 
-    const newBall = createBall(nextBallId.current);
-    nextBallId.current += 1;
-    const multiplier = MULTIPLIERS[newBall.slot];
-    const payout = bet * multiplier;
-    const profit = payout - bet;
+    let lastFrame = performance.now();
 
-    setBalance((current) => current - bet);
-    setBalls((current) => [...current, newBall]);
-    setLastDrop(`Ball is falling toward ${multiplier}x...`);
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const pixelRatio = window.devicePixelRatio || 1;
+      canvas.width = Math.floor(rect.width * pixelRatio);
+      canvas.height = Math.floor(rect.height * pixelRatio);
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      geometryRef.current = getBoardGeometry(rect.width, rect.height);
+      drawBoard(context, geometryRef.current, ballsRef.current);
+    }
 
-    const payoutTimer = window.setTimeout(() => {
+    function finishBall(ball, slotIndex) {
+      const dropBet = activeBetsRef.current.get(ball.id) ?? 0;
+      const multiplier = MULTIPLIERS[slotIndex];
+      const payout = dropBet * multiplier;
+      const profit = payout - dropBet;
+
+      activeBetsRef.current.delete(ball.id);
       setBalance((current) => current + payout);
-      setBalls((current) => current.filter((ball) => ball.id !== newBall.id));
       setLastDrop(
         `${multiplier}x slot paid ${formatMoney(payout)} (${profit >= 0 ? '+' : ''}${formatMoney(profit)}).`,
       );
       setHistory((current) =>
         [
           {
-            id: newBall.id,
+            id: ball.id,
             multiplier,
             payout,
             profit,
@@ -93,10 +224,97 @@ function App() {
           ...current,
         ].slice(0, 5),
       );
-      payoutTimers.current = payoutTimers.current.filter((timerId) => timerId !== payoutTimer);
-    }, 3200);
+    }
 
-    payoutTimers.current = [...payoutTimers.current, payoutTimer];
+    function updateBall(ball, geometry, timeScale) {
+      ball.vy += GRAVITY * timeScale;
+      ball.vx *= AIR_RESISTANCE;
+      ball.vy *= AIR_RESISTANCE;
+      ball.x += ball.vx * timeScale;
+      ball.y += ball.vy * timeScale;
+
+      const wallLeft = geometry.boardLeft + BALL_RADIUS;
+      const wallRight = geometry.boardRight - BALL_RADIUS;
+
+      if (ball.x < wallLeft) {
+        ball.x = wallLeft;
+        ball.vx = Math.abs(ball.vx) * WALL_RESTITUTION;
+      }
+
+      if (ball.x > wallRight) {
+        ball.x = wallRight;
+        ball.vx = -Math.abs(ball.vx) * WALL_RESTITUTION;
+      }
+
+      geometry.pegs.forEach((peg) => resolvePegCollision(ball, peg));
+
+      if (ball.y + BALL_RADIUS >= geometry.slotTop) {
+        const slotIndex = clamp(
+          Math.floor((ball.x - geometry.boardLeft) / geometry.slotWidth),
+          0,
+          SLOT_COUNT - 1,
+        );
+
+        finishBall(ball, slotIndex);
+        return false;
+      }
+
+      return true;
+    }
+
+    function tick(now) {
+      const geometry = geometryRef.current;
+      const timeScale = clamp((now - lastFrame) / 16.67, 0.5, 2);
+      lastFrame = now;
+
+      if (geometry) {
+        ballsRef.current = ballsRef.current.filter((ball) => updateBall(ball, geometry, timeScale));
+        drawBoard(context, geometry, ballsRef.current);
+        setActiveBalls(ballsRef.current.length);
+      }
+
+      animationRef.current = window.requestAnimationFrame(tick);
+    }
+
+    resizeCanvas();
+    const resizeObserver =
+      'ResizeObserver' in window
+        ? new ResizeObserver(resizeCanvas)
+        : {
+            disconnect: () => window.removeEventListener('resize', resizeCanvas),
+            observe: () => window.addEventListener('resize', resizeCanvas),
+          };
+    resizeObserver.observe(canvas);
+    animationRef.current = window.requestAnimationFrame(tick);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.cancelAnimationFrame(animationRef.current);
+    };
+  }, []);
+
+  function dropBall() {
+    const geometry = geometryRef.current;
+
+    if (!canDrop || !geometry) {
+      setLastDrop('Not enough fake money for that bet.');
+      return;
+    }
+
+    const ball = {
+      id: nextBallId.current,
+      x: geometry.boardLeft + geometry.boardWidth / 2 + (Math.random() - 0.5) * 6,
+      y: 36,
+      vx: (Math.random() - 0.5) * 1.1,
+      vy: 0,
+    };
+
+    nextBallId.current += 1;
+    ballsRef.current = [...ballsRef.current, ball];
+    activeBetsRef.current.set(ball.id, bet);
+    setBalance((current) => current - bet);
+    setActiveBalls(ballsRef.current.length);
+    setLastDrop('Ball dropped. Gravity and collisions decide the slot.');
   }
 
   function updateBet(value) {
@@ -105,11 +323,11 @@ function App() {
   }
 
   function resetGame() {
-    payoutTimers.current.forEach((timerId) => window.clearTimeout(timerId));
-    payoutTimers.current = [];
+    ballsRef.current = [];
+    activeBetsRef.current.clear();
     setBalance(STARTING_BALANCE);
     setBet(INITIAL_BET);
-    setBalls([]);
+    setActiveBalls(0);
     setHistory([]);
     setLastDrop('Balance reset. The board is ready.');
   }
@@ -119,11 +337,11 @@ function App() {
       <section className="game-shell" aria-labelledby="game-title">
         <div className="game-panel">
           <div className="game-intro">
-            <p className="eyebrow">Fake-money arcade</p>
+            <p className="eyebrow">Fake-money physics arcade</p>
             <h1 id="game-title">Plinko Rush</h1>
             <p>
-              Drop a ball, watch it bounce through the pegs, and land in a multiplier slot to grow
-              your balance.
+              Drop a ball into a true triangular peg board. Gravity, bounces, and collisions decide
+              which multiplier slot it reaches.
             </p>
           </div>
 
@@ -155,38 +373,15 @@ function App() {
           </div>
 
           <p className="status" role="status" aria-live="polite">
-            {lastDrop}
+            {lastDrop} {activeBalls > 0 ? `${activeBalls} in motion.` : ''}
           </p>
 
-          <div className="plinko-board" aria-label="Plinko board">
-            <div className="drop-zone" />
+          <div className="plinko-board" aria-label="Physics Plinko board">
+            <canvas ref={canvasRef} aria-hidden="true" />
 
-            {pegRows.flat().map((peg) => (
-              <span
-                className="peg"
-                key={peg.id}
-                style={{
-                  left: `${peg.left}%`,
-                  top: `${peg.top}%`,
-                }}
-              />
-            ))}
-
-            {balls.map((ball) => (
-              <span
-                className="ball"
-                key={ball.id}
-                style={{
-                  '--ball-x': `${ball.x}%`,
-                  '--ball-drift': ball.drift,
-                  '--ball-spin': `${ball.spin}deg`,
-                }}
-              />
-            ))}
-
-            <div className="slots">
-              {MULTIPLIERS.map((multiplier, index) => (
-                <div className="slot" key={`${multiplier}-${index}`}>
+            <div className="slots" aria-label="Multiplier slots">
+              {slotLabels.map(({ id, multiplier }) => (
+                <div className="slot" key={id}>
                   <span>{multiplier}x</span>
                 </div>
               ))}
