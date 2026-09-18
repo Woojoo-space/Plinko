@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import './App.css';
 
-const ROWS = 10;
+const ROWS = 8;
 const SLOT_COUNT = ROWS + 1;
 const STARTING_BALANCE = 1000;
 const INITIAL_BET = 25;
-const MULTIPLIERS = [8, 4, 2, 1.3, 0.7, 0.4, 0.7, 1.3, 2, 4, 8];
+const MULTIPLIERS = [5.6, 2.1, 1.1, 1, 0.5, 1, 1.1, 2.1, 5.6];
 const BALL_RADIUS = 10;
 const PEG_RADIUS = 7;
 const GRAVITY = 0.34;
@@ -25,10 +25,10 @@ function clamp(value, min, max) {
 
 function getBoardGeometry(width, height) {
   const sidePadding = 8;
-  const top = 76;
-  const slotTop = height - 92;
-  const rowGap = (slotTop - top - 28) / (ROWS - 1);
-  const spacing = Math.min((width - sidePadding * 2) / ROWS, rowGap * 1.12);
+  const top = 86;
+  const slotTop = height - 86;
+  const rowGap = (slotTop - top - 36) / (ROWS - 1);
+  const spacing = Math.min((width - sidePadding * 2) / ROWS, rowGap * 1.2);
   const boardWidth = spacing * ROWS;
   const left = width / 2 - boardWidth / 2;
   const slotWidth = boardWidth / SLOT_COUNT;
@@ -61,11 +61,23 @@ function drawBoard(context, geometry, balls) {
 
   context.clearRect(0, 0, width, height);
 
-  const gradient = context.createLinearGradient(0, 0, 0, height);
-  gradient.addColorStop(0, '#19314c');
-  gradient.addColorStop(1, '#0e1b2b');
+  const gradient = context.createLinearGradient(0, 0, width, height);
+  gradient.addColorStop(0, '#7c064c');
+  gradient.addColorStop(0.52, '#8f0755');
+  gradient.addColorStop(1, '#5b0c58');
   context.fillStyle = gradient;
-  context.fillRect(0, 0, context.canvas.width, context.canvas.height);
+  context.fillRect(0, 0, width, height);
+
+  context.fillStyle = 'rgba(255, 255, 255, 0.06)';
+  context.beginPath();
+  context.arc(width * 0.18, height * 0.16, 74, 0, Math.PI * 2);
+  context.fill();
+  context.beginPath();
+  context.arc(width * 0.9, height * 0.07, 112, 0, Math.PI * 2);
+  context.fill();
+  context.beginPath();
+  context.arc(width * 0.08, height * 0.58, 48, 0, Math.PI * 2);
+  context.fill();
 
   context.fillStyle = 'rgba(255, 255, 255, 0.1)';
   context.strokeStyle = 'rgba(255, 255, 255, 0.24)';
@@ -77,21 +89,21 @@ function drawBoard(context, geometry, balls) {
 
   pegs.forEach((peg) => {
     const glow = context.createRadialGradient(peg.x, peg.y, 2, peg.x, peg.y, 22);
-    glow.addColorStop(0, 'rgba(232, 250, 255, 0.95)');
-    glow.addColorStop(0.35, 'rgba(139, 231, 211, 0.58)');
-    glow.addColorStop(1, 'rgba(139, 231, 211, 0)');
+    glow.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+    glow.addColorStop(0.35, 'rgba(255, 255, 255, 0.36)');
+    glow.addColorStop(1, 'rgba(255, 255, 255, 0)');
     context.fillStyle = glow;
     context.beginPath();
     context.arc(peg.x, peg.y, 22, 0, Math.PI * 2);
     context.fill();
 
-    context.fillStyle = '#eaf8ff';
+    context.fillStyle = '#ffffff';
     context.beginPath();
     context.arc(peg.x, peg.y, PEG_RADIUS, 0, Math.PI * 2);
     context.fill();
   });
 
-  context.strokeStyle = 'rgba(255, 255, 255, 0.26)';
+  context.strokeStyle = 'rgba(255, 255, 255, 0.12)';
   context.lineWidth = 2;
   for (let divider = 0; divider <= SLOT_COUNT; divider += 1) {
     const x = boardLeft + divider * slotWidth;
@@ -119,7 +131,7 @@ function drawBoard(context, geometry, balls) {
     context.fill();
   });
 
-  context.fillStyle = 'rgba(255, 255, 255, 0.18)';
+  context.fillStyle = 'rgba(255, 255, 255, 0.12)';
   context.fillRect(boardLeft, slotTop, boardWidth, 2);
 }
 
@@ -328,11 +340,10 @@ function App() {
       <section className="game-shell" aria-labelledby="game-title">
         <div className="game-panel">
           <div className="game-intro">
-            <p className="eyebrow">Fake-money physics arcade</p>
-            <h1 id="game-title">Plinko Rush</h1>
+            <p className="eyebrow">Arcade game</p>
+            <h1 id="game-title">Plinko</h1>
             <p>
-              Drop a ball into a true triangular peg board. Gravity, bounces, and collisions decide
-              which multiplier slot it reaches.
+              Drop chips through the peg pyramid and aim for the biggest multiplier at the edge.
             </p>
           </div>
 
@@ -368,6 +379,7 @@ function App() {
           </p>
 
           <div className="plinko-board" aria-label="Physics Plinko board">
+            <div className="board-title">Plinko</div>
             <canvas ref={canvasRef} aria-hidden="true" />
 
             <div className="slots" aria-label="Multiplier slots">
@@ -381,6 +393,10 @@ function App() {
         </div>
 
         <aside className="history-panel" aria-label="Recent drops">
+          <h2>How to Play</h2>
+          <p className="how-to">
+            Pick your bet, drop a chip, and let the pegs decide which prize slot pays out.
+          </p>
           <h2>Recent drops</h2>
           {history.length === 0 ? (
             <p className="empty-history">Your first drop will show up here.</p>
