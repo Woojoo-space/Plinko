@@ -23,6 +23,10 @@ function formatMoney(amount) {
   })}`;
 }
 
+function formatBetInput(amount) {
+  return String(Number(amount.toFixed(2)));
+}
+
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
@@ -187,12 +191,14 @@ function App() {
   const activeBetsRef = useRef(new Map());
 
   const [balance, setBalance] = useState(STARTING_BALANCE);
-  const [bet, setBet] = useState(INITIAL_BET);
+  const [betInput, setBetInput] = useState(String(INITIAL_BET));
   const [activeBalls, setActiveBalls] = useState(0);
   const [lastDrop, setLastDrop] = useState('Drop a ball to start playing.');
   const [history, setHistory] = useState([]);
 
-  const canDrop = balance >= bet;
+  const maxBet = Math.floor(balance * 90) / 100;
+  const bet = Number(betInput);
+  const canDrop = Number.isFinite(bet) && bet > 0 && bet <= maxBet && balance >= bet;
 
   const slotLabels = useMemo(
     () =>
@@ -319,7 +325,21 @@ function App() {
   function dropBall() {
     const geometry = geometryRef.current;
 
-    if (!canDrop || !geometry) {
+    if (!geometry) {
+      return;
+    }
+
+    if (!Number.isFinite(bet) || bet <= 0) {
+      setLastDrop('Type a valid bet amount first.');
+      return;
+    }
+
+    if (bet > maxBet) {
+      setLastDrop(`Max bet is ${formatMoney(maxBet)} (90% of your balance).`);
+      return;
+    }
+
+    if (!canDrop) {
       setLastDrop('Not enough fake money for that bet.');
       return;
     }
@@ -347,15 +367,25 @@ function App() {
   }
 
   function updateBet(value) {
-    const nextBet = Number(value);
-    setBet(clamp(Number.isNaN(nextBet) ? INITIAL_BET : nextBet, 5, 250));
+    setBetInput(value);
+  }
+
+  function normalizeBet() {
+    const nextBet = Number(betInput);
+
+    if (!Number.isFinite(nextBet) || nextBet <= 0) {
+      setBetInput(formatBetInput(Math.min(INITIAL_BET, maxBet)));
+      return;
+    }
+
+    setBetInput(formatBetInput(Math.min(nextBet, maxBet)));
   }
 
   function resetGame() {
     ballsRef.current = [];
     activeBetsRef.current.clear();
     setBalance(STARTING_BALANCE);
-    setBet(INITIAL_BET);
+    setBetInput(String(INITIAL_BET));
     setActiveBalls(0);
     setHistory([]);
     setLastDrop('Balance reset. The board is ready.');
@@ -383,12 +413,14 @@ function App() {
               <span className="label">Bet amount</span>
               <input
                 type="number"
-                min="5"
-                max="250"
-                step="5"
-                value={bet}
+                min="0"
+                max={maxBet}
+                step="0.01"
+                value={betInput}
                 onChange={(event) => updateBet(event.target.value)}
+                onBlur={normalizeBet}
               />
+              <small>Max {formatMoney(maxBet)}</small>
             </label>
 
             <button className="drop-button" type="button" onClick={dropBall} disabled={!canDrop}>
