@@ -178,7 +178,7 @@ button:disabled {
   right: 0;
   z-index: 2;
   display: grid;
-  grid-template-columns: repeat(9, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 8px;
   padding: 0 8px 8px;
   pointer-events: none;
@@ -199,19 +199,60 @@ button:disabled {
 }
 
 .slot:nth-child(1),
-.slot:nth-child(9) {
-  background: linear-gradient(180deg, #b8c9d6, #7d91a2);
-  color: #ffffff;
-}
-
-.slot:nth-child(2),
-.slot:nth-child(8) {
+.slot:nth-child(7) {
   background: linear-gradient(180deg, #ff82c4, #f03a9a);
 }
 
-.slot:nth-child(5) {
+.slot:nth-child(2),
+.slot:nth-child(6) {
+  background: linear-gradient(180deg, #91ddff, #38b7ec);
+}
+
+.slot:nth-child(4) {
   background: linear-gradient(180deg, #b7edff, #6ed4ff);
   color: #064663;
+}
+
+.reroll-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid #dff3ff;
+  border-radius: 8px;
+  background: #f8fcff;
+  text-align: left;
+}
+
+.reroll-panel strong {
+  display: block;
+  color: #1f2030;
+  font-size: 1rem;
+  margin-top: 4px;
+}
+
+.reroll-button {
+  min-height: 58px;
+  background: linear-gradient(180deg, #78d9ff, #23aae4);
+  color: #08374f;
+  box-shadow: 0 12px 22px rgba(35, 170, 228, 0.22);
+}
+
+.rarity-uncommon {
+  border-color: rgba(35, 170, 228, 0.44);
+}
+
+.rarity-rare {
+  border-color: rgba(216, 31, 135, 0.4);
+  box-shadow: 0 12px 32px rgba(216, 31, 135, 0.14);
+}
+
+.rarity-epic,
+.rarity-legendary {
+  border-color: rgba(255, 116, 187, 0.68);
+  box-shadow: 0 14px 36px rgba(255, 116, 187, 0.22);
 }
 
 .history-panel {
@@ -306,5 +347,9 @@ button:disabled {
   .slot {
     min-height: 46px;
     font-size: 0.68rem;
+  }
+
+  .reroll-panel {
+    grid-template-columns: 1fr;
   }
 }

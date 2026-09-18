@@ -2,11 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import './App.css';
 
 const ROWS = 8;
-const SLOT_COUNT = ROWS + 1;
 const HIDDEN_TOP_ROWS = 2;
 const STARTING_BALANCE = 1000;
 const INITIAL_BET = 25;
-const MULTIPLIERS = [0, 2.1, 1.1, 1, 0.5, 1, 1.1, 2.1, 0];
+const DEFAULT_MULTIPLIERS = [2.1, 1.1, 1, 0.5, 1, 1.1, 2.1];
+const SLOT_COUNT = DEFAULT_MULTIPLIERS.length;
+const REROLL_COST = 500;
+const REROLL_COST_LABEL = '$500';
+const SAVE_KEY = 'plinko-progress-v1';
 const BALL_RADIUS = 10;
 const PEG_RADIUS = 7;
 const GRAVITY = 0.34;
@@ -15,6 +18,45 @@ const RESTITUTION = 0.38;
 const PEG_IMPACT_DAMPING = 0.82;
 const MAX_LAUNCH_ANGLE = 0.18;
 const MAX_SPIN = 0.045;
+const MULTIPLIER_PRESETS = {
+  common: [
+    { name: 'Common 1', values: [2.4, 1, 0.9, 0.55, 0.9, 1, 2.4] },
+    { name: 'Common 2', values: [3, 0.9, 0.9, 0.6, 0.9, 0.9, 3] },
+    { name: 'Common 3', values: [3.6, 0.8, 0.9, 0.65, 0.9, 0.8, 3.6] },
+    { name: 'Common 4', values: [4.2, 0.8, 0.9, 0.6, 0.9, 0.8, 4.2] },
+    { name: 'Common 5', values: [2.6, 1.2, 0.9, 0.55, 0.9, 1.2, 2.6] },
+    { name: 'Common 6', values: [3.2, 1.1, 0.9, 0.55, 0.9, 1.1, 3.2] },
+    { name: 'Common 7', values: [4.5, 0.7, 0.95, 0.6, 0.95, 0.7, 4.5] },
+    { name: 'Common 8', values: [5, 0.7, 0.95, 0.6, 0.95, 0.7, 5] },
+  ],
+  uncommon: [
+    { name: 'Uncommon 1', values: [2.8, 1.3, 0.95, 0.5, 0.95, 1.3, 2.8] },
+    { name: 'Uncommon 2', values: [3.5, 1.1, 0.95, 0.55, 0.95, 1.1, 3.5] },
+    { name: 'Uncommon 3', values: [4, 1, 1, 0.55, 1, 1, 4] },
+    { name: 'Uncommon 4', values: [4.8, 0.9, 1, 0.55, 1, 0.9, 4.8] },
+    { name: 'Uncommon 5', values: [5.5, 0.8, 1, 0.55, 1, 0.8, 5.5] },
+  ],
+  rare: [
+    { name: 'Rare 1', values: [3, 1.4, 1, 0.5, 1, 1.4, 3] },
+    { name: 'Rare 2', values: [4, 1.2, 1.05, 0.5, 1.05, 1.2, 4] },
+    { name: 'Rare 3', values: [5, 1, 1.05, 0.55, 1.05, 1, 5] },
+    { name: 'Rare 4', values: [6, 0.9, 1.05, 0.55, 1.05, 0.9, 6] },
+  ],
+  epic: [
+    { name: 'Epic 1', values: [4, 1.4, 1.05, 0.5, 1.05, 1.4, 4] },
+    { name: 'Epic 2', values: [5.5, 1.1, 1.1, 0.55, 1.1, 1.1, 5.5] },
+  ],
+  legendary: [
+    { name: 'Legendary 1', values: [6, 1.2, 1.1, 0.5, 1.1, 1.2, 6] },
+  ],
+};
+const RARITY_CHANCES = [
+  { rarity: 'common', chance: 0.45 },
+  { rarity: 'uncommon', chance: 0.3 },
+  { rarity: 'rare', chance: 0.16 },
+  { rarity: 'epic', chance: 0.07 },
+  { rarity: 'legendary', chance: 0.02 },
+];
 
 function formatMoney(amount) {
   return `$${amount.toLocaleString('en-US', {
@@ -29,6 +71,73 @@ function formatBetInput(amount) {
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
+}
+
+function isValidMultiplierSet(multipliers) {
+  return (
+    Array.isArray(multipliers) &&
+    multipliers.length === SLOT_COUNT &&
+    multipliers.every((multiplier) => Number.isFinite(multiplier))
+  );
+}
+
+function loadSavedProgress() {
+  if (typeof window === 'undefined') {
+    return {
+      balance: STARTING_BALANCE,
+      multipliers: DEFAULT_MULTIPLIERS,
+      rarity: 'default',
+    };
+  }
+
+  try {
+    const savedProgress = JSON.parse(window.localStorage.getItem(SAVE_KEY));
+    const savedBalance = Number(savedProgress?.balance);
+    const hasSavedMultipliers = isValidMultiplierSet(savedProgress?.multipliers);
+
+    return {
+      balance: Number.isFinite(savedBalance) && savedBalance >= 0 ? savedBalance : STARTING_BALANCE,
+      multipliers: hasSavedMultipliers ? savedProgress.multipliers : DEFAULT_MULTIPLIERS,
+      rarity: hasSavedMultipliers ? savedProgress?.rarity || 'custom' : 'default',
+    };
+  } catch {
+    return {
+      balance: STARTING_BALANCE,
+      multipliers: DEFAULT_MULTIPLIERS,
+      rarity: 'default',
+    };
+  }
+}
+
+function saveProgress(progress) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.localStorage.setItem(SAVE_KEY, JSON.stringify(progress));
+}
+
+function rerollMultiplierPreset() {
+  const rarityRoll = Math.random();
+  let cumulativeChance = 0;
+  let selectedRarity = RARITY_CHANCES[RARITY_CHANCES.length - 1].rarity;
+
+  for (const { rarity, chance } of RARITY_CHANCES) {
+    cumulativeChance += chance;
+    if (rarityRoll <= cumulativeChance) {
+      selectedRarity = rarity;
+      break;
+    }
+  }
+
+  const presets = MULTIPLIER_PRESETS[selectedRarity];
+  const preset = presets[Math.floor(Math.random() * presets.length)];
+
+  return {
+    rarity: selectedRarity,
+    name: preset.name,
+    multipliers: [...preset.values],
+  };
 }
 
 function getBoardGeometry(width, height) {
@@ -189,9 +298,19 @@ function App() {
   const geometryRef = useRef(null);
   const nextBallId = useRef(1);
   const activeBetsRef = useRef(new Map());
+  const multipliersRef = useRef(DEFAULT_MULTIPLIERS);
+  const rerollInProgressRef = useRef(false);
+  const rerollTimerRef = useRef(null);
+  const initialProgress = useMemo(loadSavedProgress, []);
 
-  const [balance, setBalance] = useState(STARTING_BALANCE);
+  const [balance, setBalance] = useState(initialProgress.balance);
   const [betInput, setBetInput] = useState(String(INITIAL_BET));
+  const [activeMultipliers, setActiveMultipliers] = useState(initialProgress.multipliers);
+  const [activeRarity, setActiveRarity] = useState(initialProgress.rarity);
+  const [isRerolling, setIsRerolling] = useState(false);
+  const [rerollMessage, setRerollMessage] = useState(
+    initialProgress.rarity === 'default' ? 'Default multipliers active.' : `${initialProgress.rarity} multipliers active.`,
+  );
   const [activeBalls, setActiveBalls] = useState(0);
   const [lastDrop, setLastDrop] = useState('Drop a ball to start playing.');
   const [history, setHistory] = useState([]);
@@ -202,12 +321,24 @@ function App() {
 
   const slotLabels = useMemo(
     () =>
-      MULTIPLIERS.map((multiplier, index) => ({
+      activeMultipliers.map((multiplier, index) => ({
         id: `${multiplier}-${index}`,
         multiplier,
       })),
-    [],
+    [activeMultipliers],
   );
+
+  useEffect(() => {
+    multipliersRef.current = activeMultipliers;
+  }, [activeMultipliers]);
+
+  useEffect(() => {
+    saveProgress({
+      balance,
+      multipliers: activeMultipliers,
+      rarity: activeRarity,
+    });
+  }, [activeMultipliers, activeRarity, balance]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -230,7 +361,7 @@ function App() {
 
     function finishBall(ball, slotIndex) {
       const dropBet = activeBetsRef.current.get(ball.id) ?? 0;
-      const multiplier = MULTIPLIERS[slotIndex];
+      const multiplier = multipliersRef.current[slotIndex] ?? 0;
       const payout = dropBet * multiplier;
       const profit = payout - dropBet;
 
@@ -319,6 +450,7 @@ function App() {
     return () => {
       resizeObserver.disconnect();
       window.cancelAnimationFrame(animationRef.current);
+      window.clearTimeout(rerollTimerRef.current);
     };
   }, []);
 
@@ -381,11 +513,42 @@ function App() {
     setBetInput(formatBetInput(Math.min(nextBet, maxBet)));
   }
 
+  function handleRerollMultipliers() {
+    if (rerollInProgressRef.current) {
+      return;
+    }
+
+    if (balance < REROLL_COST) {
+      setRerollMessage(`Not enough money. Reroll costs ${formatMoney(REROLL_COST)}.`);
+      setLastDrop(`Not enough money to reroll multipliers.`);
+      return;
+    }
+
+    rerollInProgressRef.current = true;
+    setIsRerolling(true);
+
+    const result = rerollMultiplierPreset();
+    setBalance((current) => current - REROLL_COST);
+    setActiveMultipliers(result.multipliers);
+    setActiveRarity(result.rarity);
+    setRerollMessage(`${result.rarity.toUpperCase()} MULTIPLIERS! ${result.name} activated.`);
+    setLastDrop(`New multiplier set: ${result.rarity}. Reroll cost ${formatMoney(REROLL_COST)}.`);
+
+    window.clearTimeout(rerollTimerRef.current);
+    rerollTimerRef.current = window.setTimeout(() => {
+      rerollInProgressRef.current = false;
+      setIsRerolling(false);
+    }, 400);
+  }
+
   function resetGame() {
     ballsRef.current = [];
     activeBetsRef.current.clear();
     setBalance(STARTING_BALANCE);
     setBetInput(String(INITIAL_BET));
+    setActiveMultipliers(DEFAULT_MULTIPLIERS);
+    setActiveRarity('default');
+    setRerollMessage('Default multipliers active.');
     setActiveBalls(0);
     setHistory([]);
     setLastDrop('Balance reset. The board is ready.');
@@ -447,6 +610,21 @@ function App() {
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className={`reroll-panel rarity-${activeRarity}`}>
+            <div>
+              <span className="label">Multiplier reroll</span>
+              <strong>{rerollMessage}</strong>
+            </div>
+            <button
+              className="reroll-button"
+              type="button"
+              onClick={handleRerollMultipliers}
+              disabled={isRerolling}
+            >
+              Reroll Multipliers &mdash; {REROLL_COST_LABEL}
+            </button>
           </div>
         </div>
 
