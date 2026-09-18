@@ -3,6 +3,7 @@ import './App.css';
 
 const ROWS = 8;
 const SLOT_COUNT = ROWS + 1;
+const HIDDEN_TOP_ROWS = 2;
 const STARTING_BALANCE = 1000;
 const INITIAL_BET = 25;
 const MULTIPLIERS = [5.6, 2.1, 1.1, 1, 0.5, 1, 1.1, 2.1, 5.6];
@@ -39,10 +40,15 @@ function getBoardGeometry(width, height) {
     const startX = width / 2 - rowWidth / 2;
 
     return Array.from({ length: count }, (_, index) => ({
+      hidden:
+        row < HIDDEN_TOP_ROWS ||
+        (row === HIDDEN_TOP_ROWS && index === Math.floor(count / 2)),
       x: startX + index * spacing,
       y: top + row * rowGap,
     }));
-  }).flat();
+  })
+    .flat()
+    .filter((peg) => !peg.hidden);
 
   return {
     boardLeft: left,
@@ -62,13 +68,13 @@ function drawBoard(context, geometry, balls) {
   context.clearRect(0, 0, width, height);
 
   const gradient = context.createLinearGradient(0, 0, width, height);
-  gradient.addColorStop(0, '#7c064c');
-  gradient.addColorStop(0.52, '#8f0755');
-  gradient.addColorStop(1, '#5b0c58');
+  gradient.addColorStop(0, '#ff7fbd');
+  gradient.addColorStop(0.48, '#f3a7d5');
+  gradient.addColorStop(1, '#87d8ff');
   context.fillStyle = gradient;
   context.fillRect(0, 0, width, height);
 
-  context.fillStyle = 'rgba(255, 255, 255, 0.06)';
+  context.fillStyle = 'rgba(255, 255, 255, 0.16)';
   context.beginPath();
   context.arc(width * 0.18, height * 0.16, 74, 0, Math.PI * 2);
   context.fill();
@@ -90,7 +96,7 @@ function drawBoard(context, geometry, balls) {
   pegs.forEach((peg) => {
     const glow = context.createRadialGradient(peg.x, peg.y, 2, peg.x, peg.y, 22);
     glow.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
-    glow.addColorStop(0.35, 'rgba(255, 255, 255, 0.36)');
+    glow.addColorStop(0.35, 'rgba(186, 239, 255, 0.52)');
     glow.addColorStop(1, 'rgba(255, 255, 255, 0)');
     context.fillStyle = glow;
     context.beginPath();

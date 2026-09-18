@@ -1,8 +1,9 @@
 .plinko-page {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 12% 0%, rgba(255, 124, 188, 0.22), transparent 24rem),
-    linear-gradient(180deg, #f7f3ff 0%, #fff8fb 52%, #f2f6ff 100%);
+    radial-gradient(circle at 12% 0%, rgba(255, 113, 188, 0.34), transparent 24rem),
+    radial-gradient(circle at 92% 8%, rgba(107, 211, 255, 0.36), transparent 24rem),
+    linear-gradient(180deg, #fff1fa 0%, #f5fbff 56%, #eef9ff 100%);
   color: #1f2030;
   display: flex;
   align-items: flex-start;
@@ -21,8 +22,8 @@
 .game-panel,
 .history-panel {
   background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(96, 74, 122, 0.14);
-  box-shadow: 0 18px 48px rgba(74, 28, 86, 0.12);
+  border: 1px solid rgba(105, 190, 226, 0.24);
+  box-shadow: 0 18px 48px rgba(233, 93, 164, 0.13);
 }
 
 .game-panel {
@@ -39,7 +40,7 @@
 
 .eyebrow,
 .label {
-  color: #8b1760;
+  color: #d81f87;
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0;
@@ -75,8 +76,8 @@ h1 {
 .controls > div,
 .bet-control {
   min-height: 70px;
-  background: #faf7ff;
-  border: 1px solid #eee3f8;
+  background: #f8fcff;
+  border: 1px solid #dff3ff;
   border-radius: 8px;
   display: grid;
   gap: 6px;
@@ -116,14 +117,14 @@ button:disabled {
 }
 
 .drop-button {
-  background: #ffb326;
-  color: #2d1600;
-  box-shadow: 0 12px 22px rgba(255, 179, 38, 0.28);
+  background: linear-gradient(180deg, #ff74bb, #f23594);
+  color: #ffffff;
+  box-shadow: 0 12px 22px rgba(242, 53, 148, 0.28);
 }
 
 .reset-button {
-  background: #efe7f6;
-  color: #432c56;
+  background: #e5f7ff;
+  color: #155678;
 }
 
 .status {
@@ -139,8 +140,8 @@ button:disabled {
   min-height: 620px;
   overflow: hidden;
   border-radius: 8px;
-  background: #7c064c;
-  border: 1px solid rgba(124, 6, 76, 0.22);
+  background: #ff8cc8;
+  border: 1px solid rgba(79, 188, 235, 0.34);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
 }
 
@@ -181,7 +182,7 @@ button:disabled {
 .slot {
   min-height: 62px;
   border-radius: 8px;
-  background: linear-gradient(180deg, #ef8f1f, #d65c24);
+  background: linear-gradient(180deg, #62d3ff, #20a9e0);
   border: 1px solid rgba(255, 255, 255, 0.28);
   display: flex;
   align-items: center;
@@ -189,22 +190,22 @@ button:disabled {
   color: #ffffff;
   font-size: 0.92rem;
   font-weight: 950;
-  box-shadow: 0 8px 16px rgba(71, 8, 56, 0.2);
+  box-shadow: 0 8px 16px rgba(26, 133, 188, 0.18);
 }
 
 .slot:nth-child(1),
 .slot:nth-child(9) {
-  background: linear-gradient(180deg, #f0383f, #d20429);
+  background: linear-gradient(180deg, #ff4fa9, #df157d);
 }
 
 .slot:nth-child(2),
 .slot:nth-child(8) {
-  background: linear-gradient(180deg, #ef6f29, #db3e2d);
+  background: linear-gradient(180deg, #ff82c4, #f03a9a);
 }
 
 .slot:nth-child(5) {
-  background: linear-gradient(180deg, #ffce22, #e6a407);
-  color: #7a2900;
+  background: linear-gradient(180deg, #b7edff, #6ed4ff);
+  color: #064663;
 }
 
 .history-panel {
@@ -240,16 +241,16 @@ button:disabled {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  border-bottom: 1px solid #eee3f8;
+  border-bottom: 1px solid #dff3ff;
   padding-bottom: 10px;
 }
 
 .win {
-  color: #0a8f68;
+  color: #1281b3;
 }
 
 .loss {
-  color: #c83241;
+  color: #d81f87;
 }
 
 @media (max-width: 900px) {
