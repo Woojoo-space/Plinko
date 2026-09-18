@@ -13,6 +13,8 @@ const GRAVITY = 0.34;
 const AIR_RESISTANCE = 0.997;
 const RESTITUTION = 0.38;
 const PEG_IMPACT_DAMPING = 0.82;
+const MAX_LAUNCH_ANGLE = 0.18;
+const MAX_SPIN = 0.045;
 
 function formatMoney(amount) {
   return `$${amount.toLocaleString('en-US', {
@@ -121,9 +123,11 @@ function drawBoard(context, geometry, balls) {
   }
 
   balls.forEach((ball) => {
+    const highlightX = ball.x - Math.cos(ball.rotation) * 4;
+    const highlightY = ball.y - Math.sin(ball.rotation) * 5;
     const ballGradient = context.createRadialGradient(
-      ball.x - 4,
-      ball.y - 5,
+      highlightX,
+      highlightY,
       2,
       ball.x,
       ball.y,
@@ -136,6 +140,12 @@ function drawBoard(context, geometry, balls) {
     context.beginPath();
     context.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
     context.fill();
+
+    context.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+    context.lineWidth = 2;
+    context.beginPath();
+    context.arc(ball.x, ball.y, BALL_RADIUS - 4, ball.rotation, ball.rotation + Math.PI * 0.72);
+    context.stroke();
   });
 
   context.fillStyle = 'rgba(255, 255, 255, 0.12)';
@@ -242,6 +252,9 @@ function App() {
       ball.vy += GRAVITY * timeScale;
       ball.vx *= AIR_RESISTANCE;
       ball.vy *= AIR_RESISTANCE;
+      ball.vx += ball.spin * timeScale;
+      ball.spin *= 0.993;
+      ball.rotation += ball.spin * 32 * timeScale;
       ball.x += ball.vx * timeScale;
       ball.y += ball.vy * timeScale;
 
@@ -313,12 +326,18 @@ function App() {
       return;
     }
 
+    const launchAngle = (Math.random() - 0.5) * MAX_LAUNCH_ANGLE;
+    const launchSpeed = 0.75 + Math.random() * 0.65;
+    const spin = (Math.random() - 0.5) * MAX_SPIN;
+
     const ball = {
       id: nextBallId.current,
-      x: geometry.boardLeft + geometry.boardWidth / 2 + (Math.random() - 0.5) * 6,
+      x: geometry.boardLeft + geometry.boardWidth / 2 + (Math.random() - 0.5) * 10,
       y: 36,
-      vx: (Math.random() - 0.5) * 1.1,
-      vy: 0,
+      vx: Math.sin(launchAngle) * launchSpeed,
+      vy: Math.cos(launchAngle) * launchSpeed,
+      rotation: Math.random() * Math.PI * 2,
+      spin,
     };
 
     nextBallId.current += 1;
