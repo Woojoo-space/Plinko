@@ -498,7 +498,7 @@ button:disabled {
   }
 
   .plinko-board {
-    min-height: min(64vh, 430px);
+    min-height: clamp(520px, calc(70vw + 55px), 680px);
   }
 
   .board-title {
