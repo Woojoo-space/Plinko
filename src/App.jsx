@@ -11,7 +11,6 @@ const PEG_RADIUS = 7;
 const GRAVITY = 0.34;
 const AIR_RESISTANCE = 0.997;
 const RESTITUTION = 0.72;
-const WALL_RESTITUTION = 0.62;
 
 function formatMoney(amount) {
   return `$${amount.toLocaleString('en-US', {
@@ -67,14 +66,6 @@ function drawBoard(context, geometry, balls) {
   gradient.addColorStop(1, '#0e1b2b');
   context.fillStyle = gradient;
   context.fillRect(0, 0, context.canvas.width, context.canvas.height);
-
-  context.strokeStyle = 'rgba(255, 255, 255, 0.22)';
-  context.lineWidth = 3;
-  context.beginPath();
-  context.moveTo(boardLeft, slotTop);
-  context.lineTo(width / 2, 42);
-  context.lineTo(boardRight, slotTop);
-  context.stroke();
 
   context.fillStyle = 'rgba(255, 255, 255, 0.1)';
   context.strokeStyle = 'rgba(255, 255, 255, 0.24)';
@@ -233,17 +224,17 @@ function App() {
       ball.x += ball.vx * timeScale;
       ball.y += ball.vy * timeScale;
 
-      const wallLeft = geometry.boardLeft + BALL_RADIUS;
-      const wallRight = geometry.boardRight - BALL_RADIUS;
+      const wallLeft = BALL_RADIUS;
+      const wallRight = geometry.width - BALL_RADIUS;
 
       if (ball.x < wallLeft) {
         ball.x = wallLeft;
-        ball.vx = Math.abs(ball.vx) * WALL_RESTITUTION;
+        ball.vx = Math.abs(ball.vx) * 0.25;
       }
 
       if (ball.x > wallRight) {
         ball.x = wallRight;
-        ball.vx = -Math.abs(ball.vx) * WALL_RESTITUTION;
+        ball.vx = -Math.abs(ball.vx) * 0.25;
       }
 
       geometry.pegs.forEach((peg) => resolvePegCollision(ball, peg));
