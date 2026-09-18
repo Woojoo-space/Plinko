@@ -231,7 +231,7 @@ button:disabled {
 
 .reroll-panel {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 14px;
   align-items: center;
   margin-top: 14px;
@@ -254,6 +254,13 @@ button:disabled {
   background: linear-gradient(180deg, #78d9ff, #23aae4);
   color: #08374f;
   box-shadow: 0 12px 22px rgba(35, 170, 228, 0.22);
+}
+
+.boost-button {
+  min-height: 58px;
+  background: linear-gradient(180deg, #ff9ccc, #f554a6);
+  color: #ffffff;
+  box-shadow: 0 12px 22px rgba(245, 84, 166, 0.22);
 }
 
 .rarity-uncommon {

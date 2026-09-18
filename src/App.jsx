@@ -9,6 +9,8 @@ const DEFAULT_MULTIPLIERS = addEdgeMultipliers([2.1, 1.1, 1, 0.5, 1, 1.1, 2.1]);
 const SLOT_COUNT = DEFAULT_MULTIPLIERS.length;
 const REROLL_COST = 500;
 const REROLL_COST_LABEL = '$500';
+const MULTIPLIER_BOOST_COST = 0.5;
+const MULTIPLIER_BOOST_AMOUNT = 0.01;
 const SAVE_KEY = 'plinko-progress-v1';
 const BALL_RADIUS = 12;
 const PEG_RADIUS = 7;
@@ -75,6 +77,12 @@ function clamp(value, min, max) {
 
 function addEdgeMultipliers(multipliers, edgeMultiplier = 0) {
   return [edgeMultiplier, ...multipliers, edgeMultiplier];
+}
+
+function boostMultipliers(multipliers) {
+  return multipliers.map((multiplier) =>
+    multiplier === 0 ? 0 : Number((multiplier + MULTIPLIER_BOOST_AMOUNT).toFixed(2)),
+  );
 }
 
 function isValidMultiplierSet(multipliers) {
@@ -560,6 +568,20 @@ function App() {
     }, 400);
   }
 
+  function handleBoostMultipliers() {
+    if (balance < MULTIPLIER_BOOST_COST) {
+      setRerollMessage(`Not enough money. Boost costs ${formatMoney(MULTIPLIER_BOOST_COST)}.`);
+      setLastDrop('Not enough money to boost multipliers.');
+      return;
+    }
+
+    setBalance((current) => current - MULTIPLIER_BOOST_COST);
+    setActiveMultipliers((current) => boostMultipliers(current));
+    setActiveRarity((current) => (current === 'default' ? 'custom' : current));
+    setRerollMessage(`Multipliers increased by ${MULTIPLIER_BOOST_AMOUNT.toFixed(2)}x.`);
+    setLastDrop(`Multiplier boost cost ${formatMoney(MULTIPLIER_BOOST_COST)}.`);
+  }
+
   function resetGame(message = 'Balance reset. The board is ready.') {
     ballsRef.current = [];
     activeBetsRef.current.clear();
@@ -644,6 +666,9 @@ function App() {
               disabled={isRerolling}
             >
               Reroll Multipliers &mdash; {REROLL_COST_LABEL}
+            </button>
+            <button className="boost-button" type="button" onClick={handleBoostMultipliers}>
+              Boost +0.01x &mdash; {formatMoney(MULTIPLIER_BOOST_COST)}
             </button>
           </div>
         </div>
