@@ -436,3 +436,118 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 }
+
+@media (max-width: 940px) and (orientation: landscape) {
+  .plinko-page {
+    padding: 10px;
+  }
+
+  .game-shell {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 30vw);
+    gap: 10px;
+  }
+
+  .game-panel,
+  .history-panel {
+    padding: 12px;
+  }
+
+  .game-intro {
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+
+  h1 {
+    font-size: clamp(1.8rem, 5vh, 2.8rem);
+  }
+
+  .game-intro p:last-child {
+    font-size: 0.85rem;
+  }
+
+  .controls {
+    grid-template-columns: minmax(120px, 1fr) minmax(180px, 1fr) auto;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .controls > div,
+  .bet-control,
+  button {
+    min-height: 48px;
+  }
+
+  .controls > div,
+  .bet-control {
+    padding: 8px 10px;
+  }
+
+  .controls strong,
+  .bet-control input {
+    font-size: 1rem;
+  }
+
+  .drop-button {
+    padding: 0 14px;
+  }
+
+  .status {
+    margin-bottom: 8px;
+    min-height: 20px;
+    font-size: 0.85rem;
+  }
+
+  .plinko-board {
+    min-height: min(64vh, 430px);
+  }
+
+  .board-title {
+    top: 12px;
+    font-size: 1rem;
+  }
+
+  .slots {
+    gap: 4px;
+    padding: 0 6px 6px;
+  }
+
+  .slot {
+    min-height: 40px;
+    font-size: 0.66rem;
+  }
+
+  .reroll-panel {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 10px;
+  }
+
+  .reroll-button,
+  .boost-button {
+    min-height: 44px;
+  }
+
+  .history-panel {
+    max-height: calc(100vh - 20px);
+    overflow: auto;
+  }
+
+  .history-panel h2 {
+    font-size: 1rem;
+    margin-bottom: 8px;
+  }
+
+  .how-to,
+  .multiplier-table {
+    margin-bottom: 14px;
+  }
+
+  .multiplier-group {
+    padding: 8px;
+  }
+
+  .multiplier-group li small {
+    font-size: 0.72rem;
+  }
+}
