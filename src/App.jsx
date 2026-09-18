@@ -71,6 +71,10 @@ function formatBetInput(amount) {
   return String(Number(amount.toFixed(2)));
 }
 
+function formatChance(chance) {
+  return `${Number((chance * 100).toFixed(2))}%`;
+}
+
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
@@ -678,13 +682,23 @@ function App() {
           <p className="how-to">
             Pick your bet, drop a chip, and let the pegs decide which prize slot pays out.
           </p>
-          <h2>Your Multipliers</h2>
-          <div className="multiplier-table" aria-label="Your multipliers table">
-            {activeMultipliers.map((multiplier, index) => (
-              <div className="multiplier-cell" key={`${multiplier}-${index}`}>
-                <span>Slot {index + 1}</span>
-                <strong>{multiplier}x</strong>
-              </div>
+          <h2>Reroll Options</h2>
+          <div className="multiplier-table" aria-label="Reroll multiplier options">
+            {RARITY_CHANCES.map(({ rarity, chance }) => (
+              <section className="multiplier-group" key={rarity}>
+                <div className="multiplier-group-heading">
+                  <strong>{rarity}</strong>
+                  <span>{formatChance(chance)}</span>
+                </div>
+                <ul>
+                  {MULTIPLIER_PRESETS[rarity].map((preset) => (
+                    <li key={preset.name}>
+                      <span>{preset.name}</span>
+                      <small>{preset.values.join(' / ')}x</small>
+                    </li>
+                  ))}
+                </ul>
+              </section>
             ))}
           </div>
           <h2>Recent drops</h2>

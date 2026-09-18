@@ -297,29 +297,62 @@ button:disabled {
 
 .multiplier-table {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 10px;
   margin-bottom: 22px;
 }
 
-.multiplier-cell {
+.multiplier-group {
   display: grid;
-  gap: 4px;
-  padding: 10px 8px;
+  gap: 8px;
+  padding: 10px;
   border: 1px solid #dff3ff;
   border-radius: 8px;
   background: #f8fcff;
 }
 
-.multiplier-cell span {
+.multiplier-group-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.multiplier-group-heading strong {
+  color: #d81f87;
+  font-size: 0.95rem;
+  text-transform: capitalize;
+}
+
+.multiplier-group-heading span {
+  color: #155678;
+  font-weight: 900;
+}
+
+.multiplier-group ul {
+  display: grid;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.multiplier-group li {
+  display: grid;
+  gap: 2px;
+  padding-top: 6px;
+  border-top: 1px solid #dff3ff;
+}
+
+.multiplier-group li span {
   color: #6d8ea1;
   font-size: 0.72rem;
   font-weight: 800;
 }
 
-.multiplier-cell strong {
-  color: #d81f87;
-  font-size: 1rem;
+.multiplier-group li small {
+  color: #1f2030;
+  font-weight: 800;
+  line-height: 1.35;
 }
 
 .empty-history {
