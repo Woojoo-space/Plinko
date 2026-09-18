@@ -43,9 +43,7 @@ function getBoardGeometry(width, height) {
     const startX = width / 2 - rowWidth / 2;
 
     return Array.from({ length: count }, (_, index) => ({
-      hidden:
-        row < HIDDEN_TOP_ROWS ||
-        (row === HIDDEN_TOP_ROWS && index === Math.floor(count / 2)),
+      hidden: row < HIDDEN_TOP_ROWS,
       x: startX + index * spacing,
       y: top + row * rowGap,
     }));
