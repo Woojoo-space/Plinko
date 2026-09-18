@@ -5,7 +5,7 @@ const ROWS = 8;
 const HIDDEN_TOP_ROWS = 2;
 const STARTING_BALANCE = 1000;
 const INITIAL_BET = 25;
-const DEFAULT_MULTIPLIERS = [2.1, 1.1, 1, 0.5, 1, 1.1, 2.1];
+const DEFAULT_MULTIPLIERS = addEdgeMultipliers([2.1, 1.1, 1, 0.5, 1, 1.1, 2.1]);
 const SLOT_COUNT = DEFAULT_MULTIPLIERS.length;
 const REROLL_COST = 500;
 const REROLL_COST_LABEL = '$500';
@@ -20,34 +20,34 @@ const MAX_LAUNCH_ANGLE = 0.18;
 const MAX_SPIN = 0.045;
 const MULTIPLIER_PRESETS = {
   common: [
-    { name: 'Common 1', values: [2.4, 1, 0.9, 0.55, 0.9, 1, 2.4] },
-    { name: 'Common 2', values: [3, 0.9, 0.9, 0.6, 0.9, 0.9, 3] },
-    { name: 'Common 3', values: [3.6, 0.8, 0.9, 0.65, 0.9, 0.8, 3.6] },
-    { name: 'Common 4', values: [4.2, 0.8, 0.9, 0.6, 0.9, 0.8, 4.2] },
-    { name: 'Common 5', values: [2.6, 1.2, 0.9, 0.55, 0.9, 1.2, 2.6] },
-    { name: 'Common 6', values: [3.2, 1.1, 0.9, 0.55, 0.9, 1.1, 3.2] },
-    { name: 'Common 7', values: [4.5, 0.7, 0.95, 0.6, 0.95, 0.7, 4.5] },
-    { name: 'Common 8', values: [5, 0.7, 0.95, 0.6, 0.95, 0.7, 5] },
+    { name: 'Common 1', values: addEdgeMultipliers([2.4, 1, 0.9, 0.55, 0.9, 1, 2.4]) },
+    { name: 'Common 2', values: addEdgeMultipliers([3, 0.9, 0.9, 0.6, 0.9, 0.9, 3]) },
+    { name: 'Common 3', values: addEdgeMultipliers([3.6, 0.8, 0.9, 0.65, 0.9, 0.8, 3.6]) },
+    { name: 'Common 4', values: addEdgeMultipliers([4.2, 0.8, 0.9, 0.6, 0.9, 0.8, 4.2]) },
+    { name: 'Common 5', values: addEdgeMultipliers([2.6, 1.2, 0.9, 0.55, 0.9, 1.2, 2.6]) },
+    { name: 'Common 6', values: addEdgeMultipliers([3.2, 1.1, 0.9, 0.55, 0.9, 1.1, 3.2]) },
+    { name: 'Common 7', values: addEdgeMultipliers([4.5, 0.7, 0.95, 0.6, 0.95, 0.7, 4.5]) },
+    { name: 'Common 8', values: addEdgeMultipliers([5, 0.7, 0.95, 0.6, 0.95, 0.7, 5]) },
   ],
   uncommon: [
-    { name: 'Uncommon 1', values: [2.8, 1.3, 0.95, 0.5, 0.95, 1.3, 2.8] },
-    { name: 'Uncommon 2', values: [3.5, 1.1, 0.95, 0.55, 0.95, 1.1, 3.5] },
-    { name: 'Uncommon 3', values: [4, 1, 1, 0.55, 1, 1, 4] },
-    { name: 'Uncommon 4', values: [4.8, 0.9, 1, 0.55, 1, 0.9, 4.8] },
-    { name: 'Uncommon 5', values: [5.5, 0.8, 1, 0.55, 1, 0.8, 5.5] },
+    { name: 'Uncommon 1', values: addEdgeMultipliers([2.8, 1.3, 0.95, 0.5, 0.95, 1.3, 2.8]) },
+    { name: 'Uncommon 2', values: addEdgeMultipliers([3.5, 1.1, 0.95, 0.55, 0.95, 1.1, 3.5]) },
+    { name: 'Uncommon 3', values: addEdgeMultipliers([4, 1, 1, 0.55, 1, 1, 4]) },
+    { name: 'Uncommon 4', values: addEdgeMultipliers([4.8, 0.9, 1, 0.55, 1, 0.9, 4.8]) },
+    { name: 'Uncommon 5', values: addEdgeMultipliers([5.5, 0.8, 1, 0.55, 1, 0.8, 5.5]) },
   ],
   rare: [
-    { name: 'Rare 1', values: [3, 1.4, 1, 0.5, 1, 1.4, 3] },
-    { name: 'Rare 2', values: [4, 1.2, 1.05, 0.5, 1.05, 1.2, 4] },
-    { name: 'Rare 3', values: [5, 1, 1.05, 0.55, 1.05, 1, 5] },
-    { name: 'Rare 4', values: [6, 0.9, 1.05, 0.55, 1.05, 0.9, 6] },
+    { name: 'Rare 1', values: addEdgeMultipliers([3, 1.4, 1, 0.5, 1, 1.4, 3]) },
+    { name: 'Rare 2', values: addEdgeMultipliers([4, 1.2, 1.05, 0.5, 1.05, 1.2, 4]) },
+    { name: 'Rare 3', values: addEdgeMultipliers([5, 1, 1.05, 0.55, 1.05, 1, 5]) },
+    { name: 'Rare 4', values: addEdgeMultipliers([6, 0.9, 1.05, 0.55, 1.05, 0.9, 6]) },
   ],
   epic: [
-    { name: 'Epic 1', values: [4, 1.4, 1.05, 0.5, 1.05, 1.4, 4] },
-    { name: 'Epic 2', values: [5.5, 1.1, 1.1, 0.55, 1.1, 1.1, 5.5] },
+    { name: 'Epic 1', values: addEdgeMultipliers([4, 1.4, 1.05, 0.5, 1.05, 1.4, 4]) },
+    { name: 'Epic 2', values: addEdgeMultipliers([5.5, 1.1, 1.1, 0.55, 1.1, 1.1, 5.5]) },
   ],
   legendary: [
-    { name: 'Legendary 1', values: [6, 1.2, 1.1, 0.5, 1.1, 1.2, 6] },
+    { name: 'Legendary 1', values: addEdgeMultipliers([6, 1.2, 1.1, 0.5, 1.1, 1.2, 6], 1.1) },
   ],
 };
 const RARITY_CHANCES = [
@@ -71,6 +71,10 @@ function formatBetInput(amount) {
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
+}
+
+function addEdgeMultipliers(multipliers, edgeMultiplier = 0) {
+  return [edgeMultiplier, ...multipliers, edgeMultiplier];
 }
 
 function isValidMultiplierSet(multipliers) {

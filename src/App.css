@@ -178,7 +178,7 @@ button:disabled {
   right: 0;
   z-index: 2;
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(9, minmax(0, 1fr));
   gap: 8px;
   padding: 0 8px 8px;
   pointer-events: none;
@@ -199,16 +199,22 @@ button:disabled {
 }
 
 .slot:nth-child(1),
-.slot:nth-child(7) {
-  background: linear-gradient(180deg, #ff82c4, #f03a9a);
+.slot:nth-child(9) {
+  background: linear-gradient(180deg, #b8c9d6, #7d91a2);
+  color: #ffffff;
 }
 
 .slot:nth-child(2),
-.slot:nth-child(6) {
+.slot:nth-child(8) {
+  background: linear-gradient(180deg, #ff82c4, #f03a9a);
+}
+
+.slot:nth-child(3),
+.slot:nth-child(7) {
   background: linear-gradient(180deg, #91ddff, #38b7ec);
 }
 
-.slot:nth-child(4) {
+.slot:nth-child(5) {
   background: linear-gradient(180deg, #b7edff, #6ed4ff);
   color: #064663;
 }
