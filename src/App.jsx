@@ -678,8 +678,8 @@ function App() {
           <p className="how-to">
             Pick your bet, drop a chip, and let the pegs decide which prize slot pays out.
           </p>
-          <h2>Current Multipliers</h2>
-          <div className="multiplier-table" aria-label="Current multipliers table">
+          <h2>Your Multipliers</h2>
+          <div className="multiplier-table" aria-label="Your multipliers table">
             {activeMultipliers.map((multiplier, index) => (
               <div className="multiplier-cell" key={`${multiplier}-${index}`}>
                 <span>Slot {index + 1}</span>
