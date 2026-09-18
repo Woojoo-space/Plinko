@@ -295,6 +295,33 @@ button:disabled {
   margin-bottom: 22px;
 }
 
+.multiplier-table {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.multiplier-cell {
+  display: grid;
+  gap: 4px;
+  padding: 10px 8px;
+  border: 1px solid #dff3ff;
+  border-radius: 8px;
+  background: #f8fcff;
+}
+
+.multiplier-cell span {
+  color: #6d8ea1;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.multiplier-cell strong {
+  color: #d81f87;
+  font-size: 1rem;
+}
+
 .empty-history {
   color: #7f798b;
 }

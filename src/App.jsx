@@ -7,8 +7,8 @@ const STARTING_BALANCE = 1000;
 const INITIAL_BET = 25;
 const DEFAULT_MULTIPLIERS = addEdgeMultipliers([2.1, 1.1, 1, 0.5, 1, 1.1, 2.1]);
 const SLOT_COUNT = DEFAULT_MULTIPLIERS.length;
-const REROLL_COST = 500;
-const REROLL_COST_LABEL = '$500';
+const REROLL_COST = 490;
+const REROLL_COST_LABEL = '$490';
 const MULTIPLIER_BOOST_COST = 0.5;
 const MULTIPLIER_BOOST_AMOUNT = 0.01;
 const SAVE_KEY = 'plinko-progress-v1';
@@ -678,6 +678,15 @@ function App() {
           <p className="how-to">
             Pick your bet, drop a chip, and let the pegs decide which prize slot pays out.
           </p>
+          <h2>Current Multipliers</h2>
+          <div className="multiplier-table" aria-label="Current multipliers table">
+            {activeMultipliers.map((multiplier, index) => (
+              <div className="multiplier-cell" key={`${multiplier}-${index}`}>
+                <span>Slot {index + 1}</span>
+                <strong>{multiplier}x</strong>
+              </div>
+            ))}
+          </div>
           <h2>Recent drops</h2>
           {history.length === 0 ? (
             <p className="empty-history">Your first drop will show up here.</p>

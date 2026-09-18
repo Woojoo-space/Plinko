@@ -8,4 +8,5 @@ test('renders plinko game controls', () => {
   expect(screen.getByRole('button', { name: /drop ball/i })).toBeDefined();
   expect(screen.getByRole('button', { name: /reroll multipliers/i })).toBeDefined();
   expect(screen.getByRole('button', { name: /boost/i })).toBeDefined();
+  expect(screen.getByText(/current multipliers/i)).toBeDefined();
 });
