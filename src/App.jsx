@@ -12,7 +12,8 @@ const REROLL_COST_LABEL = '$490';
 const MULTIPLIER_BOOST_COST = 2.5;
 const MULTIPLIER_BOOST_AMOUNT = 0.01;
 const SAVE_KEY = 'plinko-progress-v1';
-const PEG_RADIUS = 7;
+const PEG_RADIUS_RATIO = 0.1;
+const BALL_RADIUS_RATIO = 0.2;
 const GRAVITY = 0.34;
 const AIR_RESISTANCE = 0.997;
 const RESTITUTION = 0.38;
@@ -164,7 +165,8 @@ function getBoardGeometry(width, height) {
   const boardWidth = spacing * ROWS;
   const left = width / 2 - boardWidth / 2;
   const slotWidth = boardWidth / SLOT_COUNT;
-  const ballRadius = clamp(spacing * 0.2, 9, 14);
+  const pegRadius = spacing * PEG_RADIUS_RATIO;
+  const ballRadius = spacing * BALL_RADIUS_RATIO;
 
   const pegs = Array.from({ length: ROWS }, (_, row) => {
     const count = row + 1;
@@ -187,6 +189,7 @@ function getBoardGeometry(width, height) {
     ballRadius,
     width,
     height,
+    pegRadius,
     pegs,
     slotTop,
     slotWidth,
@@ -194,8 +197,18 @@ function getBoardGeometry(width, height) {
 }
 
 function drawBoard(context, geometry, balls) {
-  const { ballRadius, boardLeft, boardRight, boardWidth, height, pegs, slotTop, slotWidth, width } =
-    geometry;
+  const {
+    ballRadius,
+    boardLeft,
+    boardRight,
+    boardWidth,
+    height,
+    pegRadius,
+    pegs,
+    slotTop,
+    slotWidth,
+    width,
+  } = geometry;
 
   context.clearRect(0, 0, width, height);
 
@@ -226,18 +239,25 @@ function drawBoard(context, geometry, balls) {
   context.stroke();
 
   pegs.forEach((peg) => {
-    const glow = context.createRadialGradient(peg.x, peg.y, 2, peg.x, peg.y, 22);
+    const glow = context.createRadialGradient(
+      peg.x,
+      peg.y,
+      pegRadius * 0.28,
+      peg.x,
+      peg.y,
+      pegRadius * 3.14,
+    );
     glow.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
     glow.addColorStop(0.35, 'rgba(186, 239, 255, 0.52)');
     glow.addColorStop(1, 'rgba(255, 255, 255, 0)');
     context.fillStyle = glow;
     context.beginPath();
-    context.arc(peg.x, peg.y, 22, 0, Math.PI * 2);
+    context.arc(peg.x, peg.y, pegRadius * 3.14, 0, Math.PI * 2);
     context.fill();
 
     context.fillStyle = '#ffffff';
     context.beginPath();
-    context.arc(peg.x, peg.y, PEG_RADIUS, 0, Math.PI * 2);
+    context.arc(peg.x, peg.y, pegRadius, 0, Math.PI * 2);
     context.fill();
   });
 
@@ -287,10 +307,10 @@ function drawBoard(context, geometry, balls) {
   context.fillRect(boardLeft, slotTop, boardWidth, 2);
 }
 
-function resolvePegCollision(ball, peg, ballRadius) {
+function resolvePegCollision(ball, peg, ballRadius, pegRadius) {
   const dx = ball.x - peg.x;
   const dy = ball.y - peg.y;
-  const minDistance = ballRadius + PEG_RADIUS;
+  const minDistance = ballRadius + pegRadius;
   const distance = Math.hypot(dx, dy);
 
   if (distance === 0 || distance >= minDistance) {
@@ -436,7 +456,9 @@ function App() {
         ball.vx = -Math.abs(ball.vx) * 0.25;
       }
 
-      geometry.pegs.forEach((peg) => resolvePegCollision(ball, peg, geometry.ballRadius));
+      geometry.pegs.forEach((peg) =>
+        resolvePegCollision(ball, peg, geometry.ballRadius, geometry.pegRadius),
+      );
 
       if (ball.y + geometry.ballRadius >= geometry.slotTop) {
         const slotIndex = clamp(
