@@ -11,7 +11,8 @@ const BALL_RADIUS = 10;
 const PEG_RADIUS = 7;
 const GRAVITY = 0.34;
 const AIR_RESISTANCE = 0.997;
-const RESTITUTION = 0.72;
+const RESTITUTION = 0.38;
+const PEG_IMPACT_DAMPING = 0.82;
 
 function formatMoney(amount) {
   return `$${amount.toLocaleString('en-US', {
@@ -162,9 +163,11 @@ function resolvePegCollision(ball, peg) {
   if (speedAlongNormal < 0) {
     ball.vx -= (1 + RESTITUTION) * speedAlongNormal * normalX;
     ball.vy -= (1 + RESTITUTION) * speedAlongNormal * normalY;
+    ball.vx *= PEG_IMPACT_DAMPING;
+    ball.vy *= PEG_IMPACT_DAMPING;
   }
 
-  ball.vx += normalX * 0.16;
+  ball.vx += normalX * 0.08;
 }
 
 function App() {
