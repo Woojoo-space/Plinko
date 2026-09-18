@@ -195,7 +195,8 @@ button:disabled {
 
 .slot:nth-child(1),
 .slot:nth-child(9) {
-  background: linear-gradient(180deg, #ff4fa9, #df157d);
+  background: linear-gradient(180deg, #b8c9d6, #7d91a2);
+  color: #ffffff;
 }
 
 .slot:nth-child(2),
