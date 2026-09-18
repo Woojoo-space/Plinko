@@ -345,6 +345,12 @@ function App() {
   }, [activeMultipliers, activeRarity, balance]);
 
   useEffect(() => {
+    if (maxBet < 1 && activeBalls === 0) {
+      resetGame('Available betting amount fell below $1. Balance reset.');
+    }
+  }, [activeBalls, maxBet]);
+
+  useEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas.getContext('2d');
     if (!context) {
@@ -517,6 +523,15 @@ function App() {
     setBetInput(formatBetInput(Math.min(nextBet, maxBet)));
   }
 
+  function setMaxBet() {
+    if (maxBet < 1) {
+      resetGame('Available betting amount fell below $1. Balance reset.');
+      return;
+    }
+
+    setBetInput(formatBetInput(maxBet));
+  }
+
   function handleRerollMultipliers() {
     if (rerollInProgressRef.current) {
       return;
@@ -545,7 +560,7 @@ function App() {
     }, 400);
   }
 
-  function resetGame() {
+  function resetGame(message = 'Balance reset. The board is ready.') {
     ballsRef.current = [];
     activeBetsRef.current.clear();
     setBalance(STARTING_BALANCE);
@@ -555,7 +570,7 @@ function App() {
     setRerollMessage('Default multipliers active.');
     setActiveBalls(0);
     setHistory([]);
-    setLastDrop('Balance reset. The board is ready.');
+    setLastDrop(message);
   }
 
   return (
@@ -578,24 +593,25 @@ function App() {
 
             <label className="bet-control">
               <span className="label">Bet amount</span>
-              <input
-                type="number"
-                min="0"
-                max={maxBet}
-                step="0.01"
-                value={betInput}
-                onChange={(event) => updateBet(event.target.value)}
-                onBlur={normalizeBet}
-              />
+              <span className="bet-entry">
+                <input
+                  type="number"
+                  min="0"
+                  max={maxBet}
+                  step="0.01"
+                  value={betInput}
+                  onChange={(event) => updateBet(event.target.value)}
+                  onBlur={normalizeBet}
+                />
+                <button className="max-bet-button" type="button" onClick={setMaxBet}>
+                  Max
+                </button>
+              </span>
               <small>Max {formatMoney(maxBet)}</small>
             </label>
 
             <button className="drop-button" type="button" onClick={dropBall} disabled={!canDrop}>
               Drop Ball
-            </button>
-
-            <button className="reset-button" type="button" onClick={resetGame}>
-              Reset
             </button>
           </div>
 

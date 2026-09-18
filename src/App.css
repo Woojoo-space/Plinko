@@ -67,7 +67,7 @@ h1 {
 
 .controls {
   display: grid;
-  grid-template-columns: 1fr minmax(130px, 160px) auto auto;
+  grid-template-columns: 1fr minmax(210px, 260px) auto;
   gap: 12px;
   align-items: end;
   margin-bottom: 14px;
@@ -89,6 +89,13 @@ h1 {
   font-size: 1.45rem;
 }
 
+.bet-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
 .bet-control input {
   width: 100%;
   background: transparent;
@@ -98,6 +105,14 @@ h1 {
   font-size: 1.35rem;
   font-weight: 800;
   outline: none;
+}
+
+.max-bet-button {
+  min-height: 36px;
+  padding: 0 12px;
+  background: #e5f7ff;
+  color: #155678;
+  font-size: 0.82rem;
 }
 
 .bet-control small {
@@ -125,11 +140,6 @@ button:disabled {
   background: linear-gradient(180deg, #ff74bb, #f23594);
   color: #ffffff;
   box-shadow: 0 12px 22px rgba(242, 53, 148, 0.28);
-}
-
-.reset-button {
-  background: #e5f7ff;
-  color: #155678;
 }
 
 .status {
